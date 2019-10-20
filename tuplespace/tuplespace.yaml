@@ -1,0 +1,13 @@
+---
+name: ts
+uri: druby://localhost:12345
+notify: tcp://*:54321
+filters:
+  - [ ~, ~ ]
+  - [ ~, ~, ~]
+  - [ ~, ~, ~, ~]
+  - [ ~, ~, ~, ~, ~]
+adapter:
+  host: localhost
+  port: 8000
+  max_clients: 32
