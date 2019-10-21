@@ -1,7 +1,11 @@
 ---
 name: ts
 uri: druby://localhost:12345
-notify: tcp://*:54321
+notify:
+  - address: 224.0.0.1
+    port: 54321
+  - address: 224.0.0.1
+    port: 54322
 filters:
   - [ ~, ~ ]
   - [ ~, ~, ~]

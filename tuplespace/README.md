@@ -5,40 +5,32 @@
 
  * `tuplespace.rb`
  
-Implements a Rinda tuplespace that publishes change notifications via
-[ZeroMQ](https://learning-0mq-with-pyzmq.readthedocs.io/en/latest/pyzmq/patterns/pubsub.html).
-
-Requires the Ruby FFI ZMQ library:
-
-    $ sudo apt install --yes ruby-ffi-rzmq
-
+Implements a Rinda tuplespace that sends change notifications via IP multicast.
 
 By default, configuration comes from `tuplespace.yaml`. A different
 configuration file can be specified with the `-c` or `--config` switch:
 
     $ ./tuplespace.rb -c config.yaml
 
-Notifications are published in the format "*name* *event* *tuple*".
+Notifications are published in the format "*name* *event* *payload*".
 
-Field   | Description
-------- | --------------------------------------------------------
-*name*  | the name of the tuplespace (see `tuplespace.yaml` below)
-*event* | one of `write` or `take`
-*tuple* | the contents of the tuple, marshaled as JSON
+Field     | Description
+--------- | --------------------------------------------------------
+*name*    | the name of the tuplespace (see `tuplespace.yaml` below)
+*event*   | one of `start`, `write`, or `take`
+*payload* | `druby://` URI or contents of a tuple marshaled as JSON
 
  * `tuplespace.yaml`
 
 Configuration file for the tuplespace. 
 
-Setting               | Description
---------------------- | ---------------------------------------------
-`name`                | Name of the tuplespace. Used in notifications
-`uri`                 | DRuby URI for tuplespace
-`notify`              | ZeroMQ endpoint for publishing notifications
-`filters`             | Tuple patterns which will cause notifications to be sent
-`adapter.host`        | Hostname for XML-RPC adapter
-`adapter.port`        | Port for XML-RPC adapter
-`adapter.max_clients` | Maximum number of clients that can connect to XML-RPC adapter
+Setting   | Description
+--------- | -----------------------------------------------------------------------
+`name`    | Name of the tuplespace. Used in notifications
+`uri`     | DRuby URI for tuplespace
+`notify`  | List of multicast `host` and `port` values for publishing notifications
+`filters` | Tuple patterns which will cause notifications to be sent
+`adapter` | `host`, `port`, and `max_clients` for XML-RPC adapter
 
 Filter patterns correspond to Rinda templates. `~` is the YAML syntax
 for Ruby's `nil`, so the default filters will cause notifications to be
@@ -139,3 +131,9 @@ then starts an interactive interpreter prompt.
 Python equivalents of the example programs from
 [Wikipedia](https://en.wikipedia.org/wiki/Rinda_(Ruby_programming_language)).
 
+### Multicast client
+
+ * `subscribe.py`
+
+Listens on a given multicast address and port and decodes received
+packets as Python strings.

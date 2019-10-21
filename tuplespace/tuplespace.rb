@@ -1,9 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'json'
+require 'socket'
 require 'rinda/tuplespace'
-
-require 'ffi-rzmq'
 
 require './config'
 require './multiplenotify'
@@ -15,12 +14,17 @@ def start_tuplespace(name, uri)
   ts
 end
 
-def open_socket(address)
-  ctx = ZMQ::Context.new
-  sock = ctx.socket(ZMQ::PUB)
-  sock.bind(address)
-  puts "Sending notifications to #{address}"
+def open_multicast_socket
+  sock = UDPSocket.open
+  sock.setsockopt Socket::Option.ipv4_multicast_ttl(1)
   sock
+end
+
+def notify_all(addrs, sock, notification)
+  addrs.each do |dest|
+    sock.send notification, 0, dest['address'], dest['port']
+  end
+  puts notification
 end
 
 def map_symbols_out(tuple)
@@ -34,17 +38,28 @@ config = read_config
 ts_name = config['name']
 ts_uri  = config['uri']
 
+notify_addrs = config['notify']
+
 ts = start_tuplespace ts_name, ts_uri
-s = open_socket config['notify']
 
-mn = MultipleNotify.new ts, nil, config['filters']
-loop do
-  event, tuple = mn.pop
-  json = JSON.generate(map_symbols_out(tuple))
-  notification = "#{ts_name} #{event} #{json}"
-  s.send_string notification
-  puts notification
+begin
+  sock = open_multicast_socket
+  notify_addrs.each do |dest|
+    puts "Sending notifications to udp://#{dest['address']}:#{dest['port']}"
+  end
+  notify_all notify_addrs, sock, "#{ts_name} start #{ts_uri}"
+
+  mn = MultipleNotify.new ts, nil, config['filters']
+  loop do
+    event, tuple = mn.pop
+    json = JSON.generate(map_symbols_out(tuple))
+    notify_all notify_addrs, sock, "#{ts_name} #{event} #{json}"
+  end
+
+  DRb.thread.join
+rescue Interrupt
+  puts
+ensure
+  sock.close
+  DRb.stop_service
 end
-
-DRb.thread.join
-
