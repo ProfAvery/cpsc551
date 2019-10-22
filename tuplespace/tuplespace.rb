@@ -5,6 +5,7 @@ require 'socket'
 require 'rinda/tuplespace'
 
 require './config'
+require './multicast'
 require './multiplenotify'
 
 def start_tuplespace(name, uri)
@@ -12,19 +13,6 @@ def start_tuplespace(name, uri)
   DRb.start_service(uri, ts)
   puts "Tuplespace #{name} started at #{DRb.uri}"
   ts
-end
-
-def open_multicast_socket
-  sock = UDPSocket.open
-  sock.setsockopt Socket::Option.ipv4_multicast_ttl(1)
-  sock
-end
-
-def notify_all(addrs, sock, notification)
-  addrs.each do |dest|
-    sock.send notification, 0, dest['address'], dest['port']
-  end
-  puts notification
 end
 
 def map_symbols_out(tuple)

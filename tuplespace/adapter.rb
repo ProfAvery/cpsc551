@@ -4,6 +4,7 @@ require 'rinda/rinda'
 require 'xmlrpc/server'
 
 require './config'
+require './multicast'
 require './suppress_warnings'
 
 suppress_warnings do
@@ -56,7 +57,7 @@ config = read_config
 ts_name = config['name']
 ts_uri  = config['uri']
 
-ts = start_tuplespace_proxy ts_name, ts_uri
+notify_addrs = config['notify']
 
 adapter_host        = config['adapter']['host']
 adapter_port        = config['adapter']['port']
@@ -64,8 +65,20 @@ adapter_max_clients = config['adapter']['max_clients']
 
 adapter_uri = "http://#{adapter_host}:#{adapter_port}"
 
+ts = start_tuplespace_proxy ts_name, ts_uri
+
 server = XMLRPC::Server.new(adapter_port, adapter_host, adapter_max_clients)
 puts "Adapter for tuplespace #{ts_name} started at #{adapter_uri}"
+
+begin
+  sock = open_multicast_socket
+  notify_addrs.each do |dest|
+    puts "Sending notifications to udp://#{dest['address']}:#{dest['port']}"
+  end
+  notify_all notify_addrs, sock, "#{ts_name} adapter #{adapter_uri}"
+ensure
+  sock.close
+end
 
 server.add_handler('_in') do |tuple, sec|
   begin

@@ -12,12 +12,12 @@ configuration file can be specified with the `-c` or `--config` switch:
 
     $ ./tuplespace.rb -c config.yaml
 
-Notifications are published in the format "*name* *event* *payload*".
+Notifications are sent in the format "*name* *event* *payload*".
 
 Field     | Description
 --------- | --------------------------------------------------------
 *name*    | the name of the tuplespace (see `tuplespace.yaml` below)
-*event*   | one of `start`, `write`, or `take`
+*event*   | one of `start`, `adapter`, `write`, or `take`
 *payload* | `druby://` URI or contents of a tuple marshaled as JSON
 
  * `tuplespace.yaml`
@@ -25,10 +25,10 @@ Field     | Description
 Configuration file for the tuplespace. 
 
 Setting   | Description
---------- | -----------------------------------------------------------------------
+--------- | --------------------------------------------------------------------
 `name`    | Name of the tuplespace. Used in notifications
 `uri`     | DRuby URI for tuplespace
-`notify`  | List of multicast `host` and `port` values for publishing notifications
+`notify`  | List of multicast `host` and `port` values for sending notifications
 `filters` | Tuple patterns which will cause notifications to be sent
 `adapter` | `host`, `port`, and `max_clients` for XML-RPC adapter
 
@@ -60,6 +60,10 @@ or
 
 Temporarily suppresses warnings from the Ruby interpreter.
 
+ * `multicast.rb`
+
+Opens multicast sockets and sends notifications.
+
  * `multiplenotify.rb`
 
 Combines events from multiple Rinda notification requests.
@@ -69,7 +73,9 @@ Combines events from multiple Rinda notification requests.
  * `adapter.rb`
 
 XML-RPC adapter for Rinda tuplespaces. Exposes Rinda `take`, `read`,
-and `write` operations as `in`, `_rd`, and `_out`.
+and `write` operations as `_in`, `_rd`, and `_out`.
+
+A notification is sent when the adapter starts.
 
 Handlers for `_in` and `_rd` take an additional parameter in order to
 specify timeouts (see *Python Proxy* below).
