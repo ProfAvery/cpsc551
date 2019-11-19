@@ -40,10 +40,10 @@ class TupleSpaceAdapter:
         return self.ts._in(self.map_templates_out(tupl), 0)
 
     def _rd(self, tupl):
-        return self.ts._rd(self.map_template_out(tupl), None)
+        return self.ts._rd(self.map_templates_out(tupl), None)
 
     def _rdp(self, tupl):
-        return self.ts._rd(self.map_template_out(tupl), 0)
+        return self.ts._rd(self.map_templates_out(tupl), 0)
 
     def _out(self, tupl):
         self.ts._out(tupl)
